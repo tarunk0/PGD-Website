@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>PGD – Pandra Global Dynamics Pvt Ltd</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header" id="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-pgd">PGD</span>
+      <div class="logo-sub">
+        <span>PANDRA GLOBAL DYNAMICS</span>
+        <span class="logo-pvt">PVT LTD</span>
+      </div>
+    </div>
+    <nav class="nav">
+      <a href="#heritage">Our Heritage</a>
+      <a href="#logistics">Global Logistics</a>
+      <a href="#products">Products</a>
+      <a href="/catalog">Full Catalog</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a href="#contact" class="btn-quote">Get a Quote</a>
+    <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-split">
+    <div class="hero-craft">
+      <div class="craft-visual">
+        <div class="copper-ring r1"></div>
+        <div class="copper-ring r2"></div>
+        <div class="copper-ring r3"></div>
+        <div class="copper-bottle-svg">
+          <svg viewBox="0 0 120 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 20 Q50 10 60 8 Q70 10 70 20 L72 40 Q85 55 88 90 L90 160 Q90 180 60 182 Q30 180 30 160 L32 90 Q35 55 48 40 Z" fill="url(#cg)" stroke="#d4943a" stroke-width="1.5"/>
+            <path d="M48 40 Q60 50 72 40" stroke="#d4943a" stroke-width="1" fill="none"/>
+            <path d="M35 100 Q60 95 85 100" stroke="#b87333" stroke-width="0.8" fill="none" opacity="0.6"/>
+            <path d="M33 120 Q60 114 87 120" stroke="#b87333" stroke-width="0.8" fill="none" opacity="0.5"/>
+            <path d="M33 140 Q60 134 87 140" stroke="#b87333" stroke-width="0.8" fill="none" opacity="0.4"/>
+            <defs>
+              <linearGradient id="cg" x1="30" y1="0" x2="90" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#8b4e1a"/>
+                <stop offset="30%" stop-color="#d4943a"/>
+                <stop offset="60%" stop-color="#b87333"/>
+                <stop offset="100%" stop-color="#7a3d12"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="material-label">Handcrafted · 99.9% Pure Copper</div>
+      </div>
+    </div>
+    <div class="hero-global">
+      <div class="hero-content">
+        <p class="hero-eyebrow">Est. India · Shipping to 40+ Countries</p>
+        <h1 class="hero-headline">Merging Ancient<br/><em>Earth</em> with<br/>Global Reach.</h1>
+        <p class="hero-sub">Premier exporters of fine Copper, Ceramics &amp; Heritage Handicrafts — from the workshops of India to the world's most discerning markets.</p>
+        <div class="hero-actions">
+          <a href="#products" class="btn-primary">Explore Products</a>
+          <a href="#logistics" class="btn-ghost">Our Reach ↓</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-n" id="live-count">4,827</span><span class="stat-l">Active Shipments</span></div>
+          <div class="stat-div"></div>
+          <div class="stat"><span class="stat-n">40+</span><span class="stat-l">Countries Served</span></div>
+          <div class="stat-div"></div>
+          <div class="stat"><span class="stat-n">6</span><span class="stat-l">Live Routes</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll">scroll</div>
+</section>
+
+<!-- HERITAGE -->
+<section class="heritage" id="heritage">
+  <div class="container">
+    <div class="section-label">Our Heritage</div>
+    <h2 class="section-title">Rooted in Craft.<br/>Built for the World.</h2>
+    <div class="heritage-grid">
+      <div class="heritage-card fade-in">
+        <div class="hcard-icon">
+          <svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#b87333" stroke-width="1"/><path d="M20 8 Q26 14 26 20 Q26 28 20 32 Q14 28 14 20 Q14 14 20 8Z" stroke="#b87333" stroke-width="1" fill="none"/><path d="M8 20 L32 20" stroke="#b87333" stroke-width="0.8"/></svg>
+        </div>
+        <h3>Copper Craft</h3>
+        <p>Our copper products trace their lineage to ancient Indian metallurgy — hand-hammered, kiln-tested, and exported at 99.9% purity to health-conscious markets worldwide.</p>
+      </div>
+      <div class="heritage-card fade-in">
+        <div class="hcard-icon">
+          <svg viewBox="0 0 40 40" fill="none"><path d="M10 32 Q10 20 20 12 Q30 20 30 32 Z" stroke="#b87333" stroke-width="1" fill="none"/><path d="M14 26 Q20 18 26 26" stroke="#b87333" stroke-width="0.8" fill="none"/></svg>
+        </div>
+        <h3>Ceramic Heritage</h3>
+        <p>From Jaipur's blue pottery to Khurja's industrial ceramics — each piece reflects centuries of regional tradition, now reaching homes in the US, UK and Canada.</p>
+      </div>
+      <div class="heritage-card fade-in">
+        <div class="hcard-icon">
+          <svg viewBox="0 0 40 40" fill="none"><rect x="8" y="8" width="24" height="24" rx="2" stroke="#b87333" stroke-width="1"/><path d="M14 20 L26 20 M20 14 L20 26" stroke="#b87333" stroke-width="0.8"/></svg>
+        </div>
+        <h3>Global Logistics</h3>
+        <p>End-to-end export management — customs documentation, certified packaging, and door-to-door shipping across 6 active international routes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="products-section" id="products">
+  <div class="container">
+    <div class="section-label">Product Catalog</div>
+    <h2 class="section-title">Earth-Born Materials,<br/>World-Class Quality.</h2>
+    <div class="products-grid">
+      {% for product in products %}
+      <div class="product-card fade-in" data-category="{{ product.category }}">
+        <div class="pcard-visual pcard-{{ product.image }}">
+          <div class="pcard-overlay">
+            <span class="pcard-purity">{{ product.purity }}</span>
+          </div>
+        </div>
+        <div class="pcard-body">
+          <span class="pcard-cat">{{ product.category | capitalize }}</span>
+          <h4 class="pcard-name">{{ product.name }}</h4>
+          <p class="pcard-desc">{{ product.desc }}</p>
+          <div class="pcard-footer">
+            <span class="pcard-price">{{ product.price }}</span>
+            <a href="#contact" class="btn-small">Enquire</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div style="text-align:center; margin-top:3rem;">
+      <a href="/catalog" class="btn-primary">View Full Catalog</a>
+    </div>
+  </div>
+</section>
+
+<!-- LOGISTICS MAP -->
+<section class="logistics" id="logistics">
+  <div class="container">
+    <div class="section-label light">Global Logistics</div>
+    <h2 class="section-title light">The Silk Road,<br/>Reimagined.</h2>
+    <div class="map-wrap">
+      <div class="map-svg-container">
+        <svg id="world-map" viewBox="0 0 800 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Simplified world landmasses -->
+          <!-- North America -->
+          <path d="M80 80 L170 70 L185 90 L195 110 L190 140 L175 160 L160 180 L140 200 L120 210 L100 205 L85 185 L75 160 L65 130 L70 100 Z" fill="#1a2744" stroke="#2a3a5a" stroke-width="0.5"/>
+          <!-- South America -->
+          <path d="M140 215 L170 210 L185 230 L190 260 L185 300 L170 330 L150 345 L130 330 L120 300 L118 265 L125 240 Z" fill="#1a2744" stroke="#2a3a5a" stroke-width="0.5"/>
+          <!-- Europe -->
+          <path d="M340 60 L380 55 L400 70 L405 90 L390 100 L370 105 L350 100 L335 85 Z" fill="#1a2744" stroke="#2a3a5a" stroke-width="0.5"/>
+          <!-- Africa -->
+          <path d="M345 110 L390 105 L415 130 L420 170 L415 220 L400 260 L375 285 L350 280 L330 255 L320 210 L325 160 L335 130 Z" fill="#1a2744" stroke="#2a3a5a" stroke-width="0.5"/>
+          <!-- India (highlighted) -->
+          <path d="M510 130 L535 125 L550 140 L555 165 L545 195 L530 215 L515 210 L505 185 L500 160 L505 140 Z" fill="#2a3a1a" stroke="#b87333" stroke-width="1"/>
+          <!-- Asia -->
+          <path d="M410 60 L500 50 L560 60 L610 75 L640 95 L650 120 L630 130 L580 125 L545 120 L500 125 L455 120 L420 110 L405 95 Z" fill="#1a2744" stroke="#2a3a5a" stroke-width="0.5"/>
+          <!-- Australia -->
+          <path d="M600 220 L650 210 L680 225 L690 255 L680 280 L650 295 L610 285 L590 260 L590 235 Z" fill="#1a2744" stroke="#2a3a5a" stroke-width="0.5"/>
+
+          <!-- Shipping routes from India -->
+          <path id="route-us" d="M530 170 Q400 60 155 150" stroke="#b87333" stroke-width="1" stroke-dasharray="5,4" fill="none" opacity="0.5"/>
+          <path id="route-uk" d="M530 165 Q480 80 370 82" stroke="#b87333" stroke-width="1" stroke-dasharray="5,4" fill="none" opacity="0.5"/>
+          <path id="route-ca" d="M530 168 Q430 50 130 130" stroke="#b87333" stroke-width="1" stroke-dasharray="5,4" fill="none" opacity="0.4"/>
+          <path id="route-mx" d="M530 172 Q420 180 165 195" stroke="#b87333" stroke-width="1" stroke-dasharray="5,4" fill="none" opacity="0.4"/>
+          <path id="route-au" d="M535 175 Q600 220 635 250" stroke="#b87333" stroke-width="1" stroke-dasharray="5,4" fill="none" opacity="0.4"/>
+          <path id="route-ae" d="M528 168 Q490 158 470 150" stroke="#b87333" stroke-width="1" stroke-dasharray="5,4" fill="none" opacity="0.4"/>
+
+          <!-- India origin dot -->
+          <circle cx="530" cy="170" r="6" fill="#b87333"/>
+          <circle cx="530" cy="170" r="10" stroke="#b87333" stroke-width="1" fill="none" opacity="0.5">
+            <animate attributeName="r" values="6;14;6" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <text x="533" y="162" fill="#d4943a" font-size="8" font-family="Montserrat,sans-serif">INDIA</text>
+
+          <!-- Destination dots -->
+          <circle class="dest-dot" cx="155" cy="150" r="4" fill="#d4943a" opacity="0.8"/>
+          <text x="140" y="145" fill="#d4943a" font-size="7" font-family="Montserrat,sans-serif">US</text>
+          <circle class="dest-dot" cx="365" cy="82" r="4" fill="#d4943a" opacity="0.8"/>
+          <text x="370" y="80" fill="#d4943a" font-size="7" font-family="Montserrat,sans-serif">UK</text>
+          <circle class="dest-dot" cx="128" cy="128" r="4" fill="#d4943a" opacity="0.7"/>
+          <text x="108" y="124" fill="#d4943a" font-size="7" font-family="Montserrat,sans-serif">CA</text>
+          <circle class="dest-dot" cx="163" cy="195" r="4" fill="#d4943a" opacity="0.7"/>
+          <text x="148" y="193" fill="#d4943a" font-size="7" font-family="Montserrat,sans-serif">MX</text>
+          <circle class="dest-dot" cx="635" cy="250" r="4" fill="#d4943a" opacity="0.6"/>
+          <text x="640" y="248" fill="#d4943a" font-size="7" font-family="Montserrat,sans-serif">AU</text>
+          <circle class="dest-dot" cx="468" cy="150" r="4" fill="#d4943a" opacity="0.7"/>
+          <text x="455" y="146" fill="#d4943a" font-size="7" font-family="Montserrat,sans-serif">UAE</text>
+
+          <!-- Moving dots on routes -->
+          <circle r="3" fill="#f0c060" opacity="0.9">
+            <animateMotion dur="4s" repeatCount="indefinite" path="M530 170 Q400 60 155 150"/>
+          </circle>
+          <circle r="3" fill="#f0c060" opacity="0.9">
+            <animateMotion dur="3.5s" repeatCount="indefinite" begin="1s" path="M530 165 Q480 80 370 82"/>
+          </circle>
+          <circle r="3" fill="#f0c060" opacity="0.9">
+            <animateMotion dur="4.5s" repeatCount="indefinite" begin="0.5s" path="M530 168 Q430 50 130 130"/>
+          </circle>
+          <circle r="2.5" fill="#f0c060" opacity="0.8">
+            <animateMotion dur="3.8s" repeatCount="indefinite" begin="2s" path="M530 172 Q420 180 165 195"/>
+          </circle>
+          <circle r="2.5" fill="#f0c060" opacity="0.8">
+            <animateMotion dur="5s" repeatCount="indefinite" begin="1.5s" path="M535 175 Q600 220 635 250"/>
+          </circle>
+        </svg>
+      </div>
+      <div class="map-legend">
+        {% for d in destinations %}
+        <div class="legend-item">
+          <span class="legend-dot"></span>
+          <span class="legend-city">{{ d.city }}, {{ d.country }}</span>
+          <span class="legend-count">{{ d.shipments }} shipments</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <div class="container">
+    <div class="section-label">Get in Touch</div>
+    <h2 class="section-title">Ready to Ship<br/>with PGD?</h2>
+    <div class="contact-grid">
+      <div class="contact-info">
+        <p>Whether you're sourcing premium copper, artisan ceramics, or traditional handicrafts for your market, we offer full-service B2B export solutions — tailored to your volume and destination.</p>
+        <div class="cinfo-items">
+          <div class="cinfo-item"><span class="cinfo-icon">✉</span><span>export@pandraglobal.com</span></div>
+          <div class="cinfo-item"><span class="cinfo-icon">☎</span><span>+91 98765 43210</span></div>
+          <div class="cinfo-item"><span class="cinfo-icon">⊙</span><span>New Delhi, India – 110001</span></div>
+        </div>
+      </div>
+      <form class="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-row">
+          <input type="text" placeholder="Your Name" required/>
+          <input type="email" placeholder="Email Address" required/>
+        </div>
+        <select>
+          <option value="">Product Interest</option>
+          <option>Copper Products</option>
+          <option>Ceramics</option>
+          <option>Handicrafts</option>
+          <option>Bulk / Mixed Order</option>
+        </select>
+        <textarea placeholder="Tell us about your requirements — destination, quantity, timeline..." rows="4"></textarea>
+        <button type="submit" class="btn-primary">Send Enquiry →</button>
+        <p class="form-note" id="form-msg" style="display:none;color:#b87333;margin-top:1rem;">Thank you! We'll be in touch within 24 hours.</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <span class="logo-pgd">PGD</span>
+      <div class="footer-tagline">Pandra Global Dynamics Pvt Ltd</div>
+    </div>
+    <div class="footer-links">
+      <a href="#heritage">Heritage</a>
+      <a href="#products">Products</a>
+      <a href="#logistics">Logistics</a>
+      <a href="/catalog">Catalog</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="footer-ticker">
+      <span class="ticker-label">Live Shipments</span>
+      <span class="ticker-count" id="footer-count">—</span>
+    </div>
+    <div class="footer-copy">© 2025 Pandra Global Dynamics Pvt Ltd · India to the World</div>
+  </div>
+  <div class="footer-watermark">PGD</div>
+</footer>
+
+<script src="/static/js/main.js"></script>
+</body>
+</html>

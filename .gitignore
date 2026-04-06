@@ -1,0 +1,36 @@
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Sensitive files
+.env
+.env.local
+.env.production
+.env.staging
+secrets.json
+config/secrets.py
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp

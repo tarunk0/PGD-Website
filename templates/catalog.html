@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Product Catalog – PGD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+<header class="header" id="header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <span class="logo-pgd">PGD</span>
+      <div class="logo-sub"><span>PANDRA GLOBAL DYNAMICS</span><span class="logo-pvt">PVT LTD</span></div>
+    </a>
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a href="/#heritage">Our Heritage</a>
+      <a href="/#logistics">Global Logistics</a>
+      <a href="/catalog" class="active">Product Catalog</a>
+      <a href="/#contact">Contact</a>
+    </nav>
+    <a href="/#contact" class="btn-quote">Get a Quote</a>
+  </div>
+</header>
+
+<section class="catalog-hero">
+  <div class="container">
+    <div class="section-label">Full Catalog</div>
+    <h1 class="section-title">Our Complete<br/>Product Range</h1>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterProducts('all', this)">All</button>
+      <button class="filter-btn" onclick="filterProducts('copper', this)">Copper</button>
+      <button class="filter-btn" onclick="filterProducts('ceramic', this)">Ceramics</button>
+      <button class="filter-btn" onclick="filterProducts('handicraft', this)">Handicrafts</button>
+    </div>
+  </div>
+</section>
+
+<section class="products-section" style="padding-top:2rem;">
+  <div class="container">
+    <div class="products-grid" id="catalog-grid">
+      {% for product in products %}
+      <div class="product-card fade-in" data-category="{{ product.category }}">
+        <div class="pcard-visual pcard-{{ product.image }}">
+          <div class="pcard-overlay"><span class="pcard-purity">{{ product.purity }}</span></div>
+        </div>
+        <div class="pcard-body">
+          <span class="pcard-cat">{{ product.category | capitalize }}</span>
+          <h4 class="pcard-name">{{ product.name }}</h4>
+          <p class="pcard-desc">{{ product.desc }}</p>
+          <div class="pcard-footer">
+            <span class="pcard-price">{{ product.price }}</span>
+            <a href="/#contact" class="btn-small">Enquire</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <span class="logo-pgd">PGD</span>
+      <div class="footer-tagline">Pandra Global Dynamics Pvt Ltd</div>
+    </div>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="/#products">Products</a>
+      <a href="/#contact">Contact</a>
+    </div>
+    <div class="footer-copy">© 2025 Pandra Global Dynamics Pvt Ltd · India to the World</div>
+  </div>
+  <div class="footer-watermark">PGD</div>
+</footer>
+<script src="/static/js/main.js"></script>
+</body>
+</html>
