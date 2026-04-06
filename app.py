@@ -38,4 +38,4 @@ def shipment_count():
     return jsonify({"count": live, "active_routes": 6})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(dhost="0.0.0.0", port=5000, debug=True)
