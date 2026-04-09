@@ -53,7 +53,10 @@ RUN pip install --no-cache-dir --no-index --find-links /wheels /wheels/* && \
 # Copy application code
 COPY --chown=appuser:appuser . .
 
-# Create instance directory for database (with proper permissions)
+# Remove instance directory if it exists (may have wrong permissions from COPY)
+RUN rm -rf instance
+
+# Create instance directory fresh with proper permissions while still root
 RUN mkdir -p instance && \
     chown appuser:appuser instance && \
     chmod 755 instance
