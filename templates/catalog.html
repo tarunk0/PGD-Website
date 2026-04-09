@@ -43,7 +43,7 @@
   <div class="container">
     <div class="products-grid" id="catalog-grid">
       {% for product in products %}
-      <div class="product-card fade-in" data-category="{{ product.category }}">
+      <div class="product-card fade-in" data-category="{{ product.category }}" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-product-purity="{{ product.purity }}" data-product-category="{{ product.category }}">
         <div class="pcard-visual pcard-{{ product.image }}">
           <div class="pcard-overlay"><span class="pcard-purity">{{ product.purity }}</span></div>
         </div>
@@ -53,7 +53,7 @@
           <p class="pcard-desc">{{ product.desc }}</p>
           <div class="pcard-footer">
             <span class="pcard-price">{{ product.price }}</span>
-            <a href="/#contact" class="btn-small">Enquire</a>
+            <a href="/#contact" class="btn-small" onclick="enquireProduct(event, {{ product.id }}, '{{ product.name }}', '{{ product.category }}', '{{ product.price }}', '{{ product.purity }}')">Enquire</a>
           </div>
         </div>
       </div>

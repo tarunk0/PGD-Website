@@ -120,7 +120,7 @@
     <h2 class="section-title">Earth-Born Materials,<br/>World-Class Quality.</h2>
     <div class="products-grid">
       {% for product in products %}
-      <div class="product-card fade-in" data-category="{{ product.category }}">
+      <div class="product-card fade-in" data-category="{{ product.category }}" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-product-purity="{{ product.purity }}" data-product-category="{{ product.category }}">
         <div class="pcard-visual pcard-{{ product.image }}">
           <div class="pcard-overlay">
             <span class="pcard-purity">{{ product.purity }}</span>
@@ -132,7 +132,7 @@
           <p class="pcard-desc">{{ product.desc }}</p>
           <div class="pcard-footer">
             <span class="pcard-price">{{ product.price }}</span>
-            <a href="#contact" class="btn-small">Enquire</a>
+            <a href="#contact" class="btn-small" onclick="enquireProduct(event, {{ product.id }}, '{{ product.name }}', '{{ product.category }}', '{{ product.price }}', '{{ product.purity }}')">Enquire</a>
           </div>
         </div>
       </div>
@@ -243,19 +243,24 @@
           <div class="cinfo-item"><span class="cinfo-icon">⊙</span><span>H No 1 Naya Nagla Gohana Sasni Hathras 202150, Uttar Pradesh</span></div>
         </div>
       </div>
-      <form class="contact-form" onsubmit="handleSubmit(event)">
+      <form class="contact-form" id="contactForm" onsubmit="handleSubmit(event)">
         <div class="form-row">
-          <input type="text" placeholder="Your Name" required/>
-          <input type="email" placeholder="Email Address" required/>
+          <input type="text" name="name" placeholder="Your Name" required/>
+          <input type="email" name="email" placeholder="Email Address" required/>
         </div>
-        <select>
-          <option value="">Product Interest</option>
-          <option>Copper Products</option>
-          <option>Ceramics</option>
-          <option>Handicrafts</option>
-          <option>Bulk / Mixed Order</option>
-        </select>
-        <textarea placeholder="Tell us about your requirements — destination, quantity, timeline..." rows="4"></textarea>
+        <div class="form-row">
+          <input type="tel" name="phone" placeholder="Mobile Number (+91)" pattern="[0-9+\-\s]{10,}" required/>
+          <select name="product_category" id="productCategory">
+            <option value="">Product Interest</option>
+            <option value="copper">Copper Products</option>
+            <option value="ceramic">Ceramics</option>
+            <option value="handicraft">Handicrafts</option>
+            <option value="mixed">Bulk / Mixed Order</option>
+          </select>
+        </div>
+        <input type="hidden" name="product_id" id="productId" value=""/>
+        <input type="hidden" name="product_name" id="productName" value=""/>
+        <textarea name="message" id="messageField" placeholder="Tell us about your requirements — destination, quantity, timeline..." rows="4"></textarea>
         <button type="submit" class="btn-primary">Send Enquiry →</button>
         <p class="form-note" id="form-msg" style="display:none;color:#b87333;margin-top:1rem;">Thank you! We'll be in touch within 24 hours.</p>
       </form>
