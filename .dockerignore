@@ -35,7 +35,7 @@ coverage.xml
 venv/
 ENV/
 
-# Instance folder (contains database)
+# Instance folder (contains database - created at runtime via volumes)
 instance/
 
 # IDE

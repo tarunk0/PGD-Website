@@ -53,15 +53,13 @@ RUN pip install --no-cache-dir --no-index --find-links /wheels /wheels/* && \
 # Copy application code
 COPY --chown=appuser:appuser . .
 
-# Remove instance directory if it exists (may have wrong permissions from COPY)
-RUN rm -rf instance
-
-# Create instance directory fresh with proper permissions while still root
+# Create instance directory with full permissions BEFORE switching user
+# Flask-SQLAlchemy needs write access during initialization
 RUN mkdir -p instance && \
     chown appuser:appuser instance && \
-    chmod 755 instance
+    chmod 777 instance
 
-# Switch to non-root user
+# Switch to non-root user  
 USER appuser
 
 # Expose port

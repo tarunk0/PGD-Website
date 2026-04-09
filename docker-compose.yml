@@ -16,6 +16,8 @@ services:
     volumes:
       - .:/app
       - /app/__pycache__
+      # Mount instance directory with proper permissions
+      - pgd_instance_dev:/app/instance
     command: python app.py
     restart: unless-stopped
     healthcheck:
@@ -24,3 +26,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+
+volumes:
+  pgd_instance_dev:
+    driver: local
