@@ -50,9 +50,97 @@ function filterProducts(cat, btn) {
   });
 }
 
-// Contact form
+// Contact form - Enhanced with database saving
 function handleSubmit(e) {
   e.preventDefault();
+  const form = e.target;
   const msg = document.getElementById('form-msg');
-  if (msg) { msg.style.display = 'block'; e.target.reset(); }
+  
+  // Get form values
+  const formData = new FormData(form);
+  const data = {
+    name: formData.get('name') || form.querySelector('input[placeholder="Your Name"]')?.value,
+    email: formData.get('email') || form.querySelector('input[placeholder="Email Address"]')?.value,
+    phone: form.querySelector('input[placeholder*="Phone"]')?.value || '',
+    product_id: null,
+    message: form.querySelector('textarea')?.value || ''
+  };
+  
+  // Get selected product interest if exists
+  const selectEl = form.querySelector('select');
+  if (selectEl && selectEl.value) {
+    data.product_interest = selectEl.value;
+  }
+  
+  // Validate data
+  if (!data.name || !data.email) {
+    if (msg) {
+      msg.style.display = 'block';
+      msg.style.color = '#dc3545';
+      msg.textContent = 'Please fill in name and email';
+    }
+    return;
+  }
+  
+  // Send to database
+  fetch('/api/inquiries', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data)
+  })
+  .then(response => response.json())
+  .then(result => {
+    if (result.success) {
+      if (msg) {
+        msg.style.display = 'block';
+        msg.style.color = '#b87333';
+        msg.textContent = 'Thank you! Your inquiry has been saved. We\'ll be in touch within 24 hours.';
+      }
+      console.log('Inquiry saved to database:', result.inquiry_id);
+      form.reset();
+      
+      // Hide message after 5 seconds
+      setTimeout(() => {
+        if (msg) msg.style.display = 'none';
+      }, 5000);
+    } else {
+      if (msg) {
+        msg.style.display = 'block';
+        msg.style.color = '#dc3545';
+        msg.textContent = 'Error: ' + (result.error || 'Failed to save inquiry');
+      }
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    if (msg) {
+      msg.style.display = 'block';
+      msg.style.color = '#dc3545';
+      msg.textContent = 'Error saving inquiry. Please try again.';
+    }
+  });
 }
+
+// WhatsApp Button Enhancement
+document.addEventListener('DOMContentLoaded', () => {
+  const whatsappBtn = document.getElementById('whatsappBtn');
+  if (!whatsappBtn) return;
+
+  // Add enhanced hover effect on desktop
+  whatsappBtn.addEventListener('mouseover', () => {
+    whatsappBtn.style.transform = 'scale(1.1) translateY(-3px)';
+  });
+
+  whatsappBtn.addEventListener('mouseout', () => {
+    whatsappBtn.style.transform = 'translateY(0)';
+  });
+
+  // Optional: Log when user clicks WhatsApp
+  whatsappBtn.addEventListener('click', () => {
+    console.log('WhatsApp button clicked - User initiated chat');
+    // You can add analytics here later
+  });
+});
+
