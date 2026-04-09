@@ -54,7 +54,9 @@ RUN pip install --no-cache-dir --no-index --find-links /wheels /wheels/* && \
 COPY --chown=appuser:appuser . .
 
 # Create instance directory for database (with proper permissions)
-RUN mkdir -p instance && chown appuser:appuser instance
+RUN mkdir -p instance && \
+    chown appuser:appuser instance && \
+    chmod 755 instance
 
 # Switch to non-root user
 USER appuser
