@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy requirements and build wheels
 COPY requirements.txt .
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /build/wheels -r requirements.txt
+RUN pip wheel --no-cache-dir --wheel-dir /build/wheels -r requirements.txt
 
 # ================================
 # Stage 2: Runtime (Production Stage)
