@@ -2,6 +2,7 @@ from flask import Flask, render_template, jsonify, request, session, redirect, s
 import random
 import os
 from datetime import datetime, timedelta
+import pytz
 from functools import wraps
 from io import BytesIO, StringIO
 from werkzeug.security import check_password_hash
@@ -90,9 +91,11 @@ def generate_pdf_report(inquiries):
         leading=12
     )
     
-    # Title and Date
+    # Title and Date - using India timezone
+    india_tz = pytz.timezone('Asia/Kolkata')
+    generated_time = datetime.now(india_tz)
     story.append(Paragraph("📊 PGD - CUSTOMER INQUIRIES REPORT", title_style))
-    story.append(Paragraph(f"Generated on {datetime.now().strftime('%Y-%m-%d at %H:%M:%S')}", subtitle_style))
+    story.append(Paragraph(f"Generated on {generated_time.strftime('%Y-%m-%d at %H:%M:%S %Z')}", subtitle_style))
     story.append(Spacer(1, 0.15*inch))
     
     # Summary Statistics Section
@@ -139,7 +142,11 @@ def generate_pdf_report(inquiries):
                 'converted': '#28A745'
             }.get(inq.status, '#6C757D')
             
-            header_text = f"<b>Inquiry #{inq.id}</b> | Status: <font color='{status_color}'><b>{inq.status.upper()}</b></font> | Date: {inq.created_at.strftime('%Y-%m-%d %H:%M')}"
+            # Convert inquiry date to India timezone
+            india_tz = pytz.timezone('Asia/Kolkata')
+            inquiry_date_ist = inq.created_at.replace(tzinfo=pytz.UTC).astimezone(india_tz)
+            
+            header_text = f"<b>Inquiry #{inq.id}</b> | Status: <font color='{status_color}'><b>{inq.status.upper()}</b></font> | Date: {inquiry_date_ist.strftime('%Y-%m-%d %H:%M IST')}"
             story.append(Paragraph(header_text, body_style))
             
             # Customer Information
@@ -151,8 +158,17 @@ def generate_pdf_report(inquiries):
             message_text = inq.message.replace('<', '&lt;').replace('>', '&gt;')
             story.append(Paragraph(message_text, body_style))
             
-            # Additional details
-            product_text = f"<b>Product Interest:</b> {inq.product_id or 'General enquiry'}"
+            # Additional details - display product interest
+            if inq.product_id:
+                product = Product.query.get(inq.product_id)
+                if product:
+                    product_text = f"<b>Product Interest:</b> {product.name} ({product.category.title()})"
+                else:
+                    product_text = f"<b>Product Interest:</b> {inq.product_category or 'Product'}"
+            elif inq.product_category:
+                product_text = f"<b>Product Interest:</b> {inq.product_category.title()}"
+            else:
+                product_text = "<b>Product Interest:</b> General enquiry"
             story.append(Paragraph(product_text, body_style))
             
             # Separator line
@@ -190,7 +206,7 @@ def generate_excel_report(inquiries):
     )
     
     # Headers
-    headers = ['ID', 'Customer Name', 'Email', 'Phone', 'Message', 'Status', 'Product ID', 'Date', 'Last Updated']
+    headers = ['ID', 'Customer Name', 'Email', 'Phone', 'Message', 'Status', 'Product Interest', 'Date', 'Last Updated']
     ws.append(headers)
     
     for cell in ws[1]:
@@ -209,6 +225,21 @@ def generate_excel_report(inquiries):
     # Data rows
     for inquiry in inquiries:
         status_color = status_colors.get(inquiry.status, 'FFFFFF')
+        
+        # Get product interest - lookup product name if product_id exists, fallback to product_category
+        product_interest = 'General enquiry'
+        if inquiry.product_id:
+            product = Product.query.get(inquiry.product_id)
+            if product:
+                product_interest = f"{product.name} ({product.category.title()})"
+        elif inquiry.product_category and inquiry.product_category.strip():
+            product_interest = inquiry.product_category.title()
+        
+        # Convert to India timezone
+        india_tz = pytz.timezone('Asia/Kolkata')
+        created_ist = inquiry.created_at.replace(tzinfo=pytz.UTC).astimezone(india_tz)
+        updated_ist = inquiry.last_updated.replace(tzinfo=pytz.UTC).astimezone(india_tz)
+        
         ws.append([
             inquiry.id,
             inquiry.customer.name,
@@ -216,9 +247,9 @@ def generate_excel_report(inquiries):
             inquiry.customer.phone or '',
             inquiry.message,
             inquiry.status.upper(),
-            inquiry.product_id or '',
-            inquiry.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            inquiry.last_updated.strftime('%Y-%m-%d %H:%M:%S')
+            product_interest,
+            created_ist.strftime('%Y-%m-%d %H:%M:%S IST'),
+            updated_ist.strftime('%Y-%m-%d %H:%M:%S IST')
         ])
         
         # Style data row
@@ -238,9 +269,9 @@ def generate_excel_report(inquiries):
     ws.column_dimensions['D'].width = 15
     ws.column_dimensions['E'].width = 35
     ws.column_dimensions['F'].width = 12
-    ws.column_dimensions['G'].width = 12
-    ws.column_dimensions['H'].width = 18
-    ws.column_dimensions['I'].width = 18
+    ws.column_dimensions['G'].width = 30  # Product Interest (was Product ID)
+    ws.column_dimensions['H'].width = 20  # Date
+    ws.column_dimensions['I'].width = 20  # Last Updated
     
     excel_buffer = BytesIO()
     wb.save(excel_buffer)
@@ -267,7 +298,23 @@ DESTINATIONS = [
     {"city": "Dubai", "country": "UAE", "lat": 25.20, "lng": 55.27, "shipments": 520},
 ]
 
-# =================== AUTHENTICATION ROUTES ===================
+# Populate Product table from PRODUCTS list if empty
+with app.app_context():
+    if Product.query.count() == 0:
+        for prod in PRODUCTS:
+            product = Product(
+                id=prod['id'],
+                name=prod['name'],
+                category=prod['category'],
+                price=prod['price'],
+                purity=prod['purity'],
+                description=prod['desc'],
+                image=prod['image']
+            )
+            db.session.add(product)
+        db.session.commit()
+
+# =================== AUTHENTICATION ROUTES ======================
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
@@ -377,11 +424,27 @@ def create_inquiry():
             )
             db.session.add(customer)
             db.session.flush()
+        else:
+            # Update phone/country/company if new data is provided and different
+            updated = False
+            if data.get('phone') and data.get('phone') != customer.phone:
+                customer.phone = data.get('phone')
+                updated = True
+            if data.get('country') and data.get('country') != customer.country:
+                customer.country = data.get('country')
+                updated = True
+            if data.get('company_name') and data.get('company_name') != customer.company_name:
+                customer.company_name = data.get('company_name')
+                updated = True
+            if updated:
+                db.session.add(customer)
+                db.session.flush()
         
         # Create inquiry
         inquiry = Inquiry(
             customer_id=customer.id,
             product_id=data.get('product_id'),
+            product_category=data.get('product_category', ''),
             message=data.get('message', ''),
             status='new'
         )
@@ -406,6 +469,22 @@ def get_inquiries():
         result = []
         
         for inquiry in inquiries:
+            # Get product interest - lookup product name if product_id exists, fallback to product_category
+            product_interest = '-'
+            if inquiry.product_id:
+                product = Product.query.get(inquiry.product_id)
+                if product:
+                    product_interest = f"{product.name} ({product.category.title()})"
+            elif inquiry.product_category and inquiry.product_category.strip():
+                product_interest = inquiry.product_category.title()
+            else:
+                product_interest = 'General enquiry'
+            
+            # Convert to India timezone (IST)
+            india_tz = pytz.timezone('Asia/Kolkata')
+            created_ist = inquiry.created_at.replace(tzinfo=pytz.UTC).astimezone(india_tz)
+            updated_ist = inquiry.last_updated.replace(tzinfo=pytz.UTC).astimezone(india_tz)
+            
             result.append({
                 "id": inquiry.id,
                 "customer_name": inquiry.customer.name,
@@ -414,8 +493,9 @@ def get_inquiries():
                 "message": inquiry.message,
                 "status": inquiry.status,
                 "product_id": inquiry.product_id,
-                "created_at": inquiry.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-                "last_updated": inquiry.last_updated.strftime("%Y-%m-%d %H:%M:%S")
+                "product_interest": product_interest,
+                "created_at": created_ist.strftime("%Y-%m-%d %H:%M:%S"),
+                "last_updated": updated_ist.strftime("%Y-%m-%d %H:%M:%S")
             })
         
         return jsonify({

@@ -54,45 +54,62 @@ function filterProducts(cat, btn) {
 function enquireProduct(e, productId, productName, productCategory, productPrice, productPurity) {
   e.preventDefault();
   
-  // Scroll to contact form
+  // Check if form exists on current page
   const contactForm = document.getElementById('contactForm');
   if (!contactForm) {
-    console.error('Contact form not found');
+    // Form doesn't exist on current page (e.g., viewing catalog.html)
+    // Store product data and redirect to home page
+    sessionStorage.setItem('enquiry_product_id', productId);
+    sessionStorage.setItem('enquiry_product_name', productName);
+    sessionStorage.setItem('enquiry_product_category', productCategory);
+    sessionStorage.setItem('enquiry_product_price', productPrice);
+    sessionStorage.setItem('enquiry_product_purity', productPurity);
+    window.location.href = '/#contact';
     return;
   }
   
+  // Form exists on current page - scroll and auto-fill
   contactForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
   
   // Auto-fill product information
   setTimeout(() => {
-    // Set product category dropdown
-    const categorySelect = document.getElementById('productCategory');
-    if (categorySelect && productCategory) {
-      categorySelect.value = productCategory.toLowerCase();
-      categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-    
-    // Set hidden product fields
-    document.getElementById('productId').value = productId;
-    document.getElementById('productName').value = productName;
-    
-    // Pre-fill message with product details
-    const messageField = document.getElementById('messageField');
-    const prefilledMessage = `I am interested in your ${productName} (${productCategory.toUpperCase()}) product listed at ${productPrice}. Purity: ${productPurity}. Please provide quotation for bulk orders.\n\nRequirements:\n- Destination: \n- Quantity: \n- Timeline: `;
-    
-    if (messageField) {
-      messageField.value = prefilledMessage;
-      messageField.focus();
-      // Position cursor at end
-      messageField.setSelectionRange(messageField.value.length, messageField.value.length);
-    }
-    
-    // Focus on first empty required field (usually phone if name/email not entered)
-    const nameField = contactForm.querySelector('input[name="name"]');
-    if (nameField && !nameField.value) {
-      nameField.focus();
-    }
+    autoFillProductDetails(productId, productName, productCategory, productPrice, productPurity);
   }, 500);
+}
+
+// Helper function to auto-fill product details
+function autoFillProductDetails(productId, productName, productCategory, productPrice, productPurity) {
+  const contactForm = document.getElementById('contactForm');
+  if (!contactForm) return;
+  
+  // Set product category dropdown
+  const categorySelect = document.getElementById('productCategory');
+  if (categorySelect && productCategory) {
+    categorySelect.value = productCategory.toLowerCase();
+    categorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  
+  // Set hidden product fields
+  const productIdField = document.getElementById('productId');
+  const productNameField = document.getElementById('productName');
+  if (productIdField) productIdField.value = productId;
+  if (productNameField) productNameField.value = productName;
+  
+  // Pre-fill message with product details
+  const messageField = document.getElementById('messageField');
+  const prefilledMessage = `I am interested in your ${productName} (${productCategory.toUpperCase()}) product listed at ${productPrice}. Purity: ${productPurity}. Please provide quotation for bulk orders.\n\nRequirements:\n- Destination: \n- Quantity: \n- Timeline: `;
+  
+  if (messageField) {
+    messageField.value = prefilledMessage;
+    messageField.focus();
+    messageField.setSelectionRange(messageField.value.length, messageField.value.length);
+  }
+  
+  // Focus on first empty required field
+  const nameField = contactForm.querySelector('input[name="name"]');
+  if (nameField && !nameField.value) {
+    nameField.focus();
+  }
 }
 
 // Contact form - Enhanced with database saving
@@ -108,6 +125,8 @@ function handleSubmit(e) {
   const productCategory = form.querySelector('select[name="product_category"]')?.value || '';
   const productId = form.querySelector('input[name="product_id"]')?.value || null;
   const message = form.querySelector('textarea[name="message"]')?.value || '';
+  
+  console.log('📋 Form captured:', { name, email, phone, productCategory, productId, message });
   
   // Validate required fields
   if (!name || !email || !phone) {
@@ -188,78 +207,31 @@ function handleSubmit(e) {
   });
 }
 
-// Contact form - Enhanced with database saving
-function handleSubmit(e) {
-  e.preventDefault();
-  const form = e.target;
-  const msg = document.getElementById('form-msg');
-  
-  // Get form values
-  const formData = new FormData(form);
-  const data = {
-    name: formData.get('name') || form.querySelector('input[placeholder="Your Name"]')?.value,
-    email: formData.get('email') || form.querySelector('input[placeholder="Email Address"]')?.value,
-    phone: form.querySelector('input[placeholder*="Phone"]')?.value || '',
-    product_id: null,
-    message: form.querySelector('textarea')?.value || ''
-  };
-  
-  // Get selected product interest if exists
-  const selectEl = form.querySelector('select');
-  if (selectEl && selectEl.value) {
-    data.product_interest = selectEl.value;
-  }
-  
-  // Validate data
-  if (!data.name || !data.email) {
-    if (msg) {
-      msg.style.display = 'block';
-      msg.style.color = '#dc3545';
-      msg.textContent = 'Please fill in name and email';
-    }
-    return;
-  }
-  
-  // Send to database
-  fetch('/api/inquiries', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data)
-  })
-  .then(response => response.json())
-  .then(result => {
-    if (result.success) {
-      if (msg) {
-        msg.style.display = 'block';
-        msg.style.color = '#b87333';
-        msg.textContent = 'Thank you! Your inquiry has been saved. We\'ll be in touch within 24 hours.';
-      }
-      console.log('Inquiry saved to database:', result.inquiry_id);
-      form.reset();
-      
-      // Hide message after 5 seconds
+// Initialize - Check for redirected product details from catalog
+document.addEventListener('DOMContentLoaded', () => {
+  // Check if we have product details from sessionStorage (from catalog redirect)
+  const productId = sessionStorage.getItem('enquiry_product_id');
+  if (productId) {
+    const productName = sessionStorage.getItem('enquiry_product_name');
+    const productCategory = sessionStorage.getItem('enquiry_product_category');
+    const productPrice = sessionStorage.getItem('enquiry_product_price');
+    const productPurity = sessionStorage.getItem('enquiry_product_purity');
+    
+    // Auto-fill the form
+    autoFillProductDetails(productId, productName, productCategory, productPrice, productPurity);
+    
+    // Scroll to contact form
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
       setTimeout(() => {
-        if (msg) msg.style.display = 'none';
-      }, 5000);
-    } else {
-      if (msg) {
-        msg.style.display = 'block';
-        msg.style.color = '#dc3545';
-        msg.textContent = 'Error: ' + (result.error || 'Failed to save inquiry');
-      }
+        contactForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
     }
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    if (msg) {
-      msg.style.display = 'block';
-      msg.style.color = '#dc3545';
-      msg.textContent = 'Error saving inquiry. Please try again.';
-    }
-  });
-}
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+  }
+});
 
 // WhatsApp Button Enhancement
 document.addEventListener('DOMContentLoaded', () => {

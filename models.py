@@ -49,6 +49,7 @@ class Inquiry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, db.ForeignKey('customers.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=True)
+    product_category = db.Column(db.String(100), nullable=True)  # copper, ceramic, handicraft, etc
     message = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(50), default='new')  # new, replied, converted
     inquiry_date = db.Column(db.DateTime, default=datetime.utcnow)
