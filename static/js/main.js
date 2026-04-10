@@ -33,13 +33,47 @@ async function fetchShipments() {
 fetchShipments();
 setInterval(fetchShipments, 8000);
 
-// Mobile nav toggle
-function toggleNav() {
-  const nav = document.querySelector('.nav');
-  if (!nav) return;
-  if (nav.style.display === 'flex') { nav.style.display = ''; }
-  else { nav.style.cssText = 'display:flex;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:rgba(0,23,45,0.97);padding:2rem;gap:1.5rem;z-index:999;'; }
-}
+// Mobile nav — slide-in panel with overlay
+(function() {
+  const toggle = document.getElementById('navToggle');
+  const nav = document.getElementById('mainNav');
+  if (!toggle || !nav) return;
+
+  // Create overlay element once
+  const overlay = document.createElement('div');
+  overlay.className = 'nav-overlay';
+  document.body.appendChild(overlay);
+
+  function openNav() {
+    nav.classList.add('open');
+    overlay.classList.add('active');
+    toggle.innerHTML = '&#10005;'; // × symbol
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeNav() {
+    nav.classList.remove('open');
+    overlay.classList.remove('active');
+    toggle.innerHTML = '&#9776;'; // ☰ symbol
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', () => {
+    nav.classList.contains('open') ? closeNav() : openNav();
+  });
+
+  overlay.addEventListener('click', closeNav);
+
+  // Close nav when a link is clicked
+  nav.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', closeNav);
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeNav();
+  });
+})();
 
 // Catalog filter
 function filterProducts(cat, btn) {

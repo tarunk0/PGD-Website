@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, send_file
+from flask import Flask, render_template, jsonify, request, session, redirect, send_file, Response, make_response
 import random
 import os
 from datetime import datetime, timedelta
@@ -398,11 +398,65 @@ def export_inquiries_excel():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# =================== SEO ROUTES ===================
+
+@app.route("/robots.txt")
+def robots_txt():
+    """Serve robots.txt for search engine crawlers"""
+    content = """User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: https://pgd-website.fly.dev/sitemap.xml
+"""
+    return Response(content, mimetype="text/plain")
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    """Auto-generate XML sitemap for search engines"""
+    base_url = "https://pgd-website.fly.dev"
+    now = datetime.now(pytz.UTC).strftime("%Y-%m-%d")
+
+    pages = [
+        {"loc": "/", "changefreq": "weekly", "priority": "1.0"},
+        {"loc": "/about", "changefreq": "monthly", "priority": "0.8"},
+        {"loc": "/catalog", "changefreq": "weekly", "priority": "0.9"},
+    ]
+
+    xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    for page in pages:
+        xml += "  <url>\n"
+        xml += f"    <loc>{base_url}{page['loc']}</loc>\n"
+        xml += f"    <lastmod>{now}</lastmod>\n"
+        xml += f"    <changefreq>{page['changefreq']}</changefreq>\n"
+        xml += f"    <priority>{page['priority']}</priority>\n"
+        xml += "  </url>\n"
+    xml += "</urlset>"
+
+    return Response(xml, mimetype="application/xml")
+
+# =================== SECURITY HEADERS ===================
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    return response
+
 # =================== PUBLIC ROUTES ===================
 
 @app.route("/")
 def home():
     return render_template("index.html", products=PRODUCTS[:6], destinations=DESTINATIONS)
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
 
 @app.route("/catalog")
 def catalog():
