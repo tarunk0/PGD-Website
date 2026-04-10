@@ -72,13 +72,33 @@
       <div class="currency-selector">
         <button class="currency-btn" id="currencyToggle" title="Change currency">
           <span class="currency-icon">💱</span>
-          <span class="currency-code" id="currencyDisplay">USD</span>
+          <span class="currency-code" id="currencyDisplay">INR</span>
         </button>
         <div class="currency-dropdown" id="currencyDropdown">
+          <button class="currency-option" data-currency="INR">INR - Indian Rupee</button>
           <button class="currency-option" data-currency="USD">USD - US Dollar</button>
           <button class="currency-option" data-currency="EUR">EUR - Euro</button>
           <button class="currency-option" data-currency="GBP">GBP - British Pound</button>
-          <button class="currency-option" data-currency="INR">INR - Indian Rupee</button>
+          <button class="currency-option" data-currency="AED">AED - UAE Dirham</button>
+          <button class="currency-option" data-currency="AUD">AUD - Australian Dollar</button>
+          <button class="currency-option" data-currency="BDT">BDT - Bangladeshi Taka</button>
+          <button class="currency-option" data-currency="BRL">BRL - Brazilian Real</button>
+          <button class="currency-option" data-currency="CAD">CAD - Canadian Dollar</button>
+          <button class="currency-option" data-currency="CHF">CHF - Swiss Franc</button>
+          <button class="currency-option" data-currency="CNY">CNY - Chinese Yuan</button>
+          <button class="currency-option" data-currency="EGP">EGP - Egyptian Pound</button>
+          <button class="currency-option" data-currency="JPY">JPY - Japanese Yen</button>
+          <button class="currency-option" data-currency="KWD">KWD - Kuwaiti Dinar</button>
+          <button class="currency-option" data-currency="MYR">MYR - Malaysian Ringgit</button>
+          <button class="currency-option" data-currency="NGN">NGN - Nigerian Naira</button>
+          <button class="currency-option" data-currency="NZD">NZD - New Zealand Dollar</button>
+          <button class="currency-option" data-currency="QAR">QAR - Qatari Riyal</button>
+          <button class="currency-option" data-currency="RUB">RUB - Russian Ruble</button>
+          <button class="currency-option" data-currency="SAR">SAR - Saudi Riyal</button>
+          <button class="currency-option" data-currency="SGD">SGD - Singapore Dollar</button>
+          <button class="currency-option" data-currency="THB">THB - Thai Baht</button>
+          <button class="currency-option" data-currency="TRY">TRY - Turkish Lira</button>
+          <button class="currency-option" data-currency="ZAR">ZAR - South African Rand</button>
         </div>
       </div>
       <a href="#contact" class="btn-quote">Get a Quote</a>
@@ -175,7 +195,7 @@
     <h2 class="section-title">Earth-Born Materials,<br/>World-Class Quality.</h2>
     <div class="products-grid">
       {% for product in products %}
-      <div class="product-card fade-in" data-category="{{ product.category }}" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price }}" data-product-purity="{{ product.purity }}" data-product-category="{{ product.category }}">
+      <div class="product-card fade-in" data-category="{{ product.category }}" data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-purity="{{ product.purity }}" data-product-category="{{ product.category }}">
         <div class="pcard-visual pcard-{{ product.image }}">
           <div class="pcard-overlay">
             <span class="pcard-purity">{{ product.purity }}</span>
@@ -186,7 +206,7 @@
           <h3 class="pcard-name">{{ product.name }}</h3>
           <p class="pcard-desc">{{ product.desc }}</p>
           <div class="pcard-footer">
-            <span class="pcard-price">{{ product.price }}</span>
+            <span class="pcard-price" data-base-price="{{ product.price }}">INR {{ product.price }}.00</span>
             <a href="#contact" class="btn-small" onclick="enquireProduct(event, {{ product.id }}, '{{ product.name }}', '{{ product.category }}', '{{ product.price }}', '{{ product.purity }}')">Enquire</a>
           </div>
         </div>

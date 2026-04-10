@@ -1,6 +1,8 @@
 from flask import Flask, render_template, jsonify, request, session, redirect, send_file, Response, make_response
 import random
 import os
+import json
+import requests as http_requests
 from datetime import datetime, timedelta
 import pytz
 from functools import wraps
@@ -29,14 +31,56 @@ with app.app_context():
 # =================== CURRENCY CONVERSION CACHE ===================
 CURRENCY_CACHE = {
     'rates': {
-        'USD': 1.0,
-        'EUR': 0.92,
-        'GBP': 0.79,
-        'INR': 83.12
+        'INR': 1.0,
+        'USD': 0.01189,
+        'EUR': 0.01094,
+        'GBP': 0.00940,
+        'AED': 0.04367,
+        'AUD': 0.01838,
+        'BDT': 1.4239,
+        'BRL': 0.06778,
+        'CAD': 0.01638,
+        'CHF': 0.01049,
+        'CNY': 0.08653,
+        'EGP': 0.5915,
+        'JPY': 1.828,
+        'KWD': 0.003654,
+        'MYR': 0.05274,
+        'NGN': 19.07,
+        'NZD': 0.02004,
+        'QAR': 0.04329,
+        'RUB': 1.1905,
+        'SAR': 0.04459,
+        'SGD': 0.01584,
+        'THB': 0.4063,
+        'TRY': 0.4598,
+        'ZAR': 0.2158,
     },
-    'last_updated': datetime.now(pytz.UTC),
-    'base_currency': 'USD'
+    'last_updated': datetime(2000, 1, 1, tzinfo=pytz.UTC),
+    'base_currency': 'INR'
 }
+
+def fetch_live_rates():
+    """Fetch live exchange rates from open.er-api.com (free, no key required)"""
+    try:
+        url = 'https://open.er-api.com/v6/latest/INR'
+        resp = http_requests.get(url, timeout=10, headers={'User-Agent': 'PGD-Website/1.0'})
+        resp.raise_for_status()
+        data = resp.json()
+        if data.get('result') == 'success' and 'rates' in data:
+            # Filter to only currencies we support
+            supported = list(CURRENCY_CACHE['rates'].keys())
+            new_rates = {k: v for k, v in data['rates'].items() if k in supported}
+            if new_rates and 'INR' in new_rates:
+                CURRENCY_CACHE['rates'] = new_rates
+                CURRENCY_CACHE['last_updated'] = datetime.now(pytz.UTC)
+                return True
+    except Exception as e:
+        print(f'Currency API fetch error: {e}')
+    return False
+
+# Fetch live rates at startup
+fetch_live_rates()
 
 # Authentication Helper Functions
 def login_required(f):
@@ -291,14 +335,14 @@ def generate_excel_report(inquiries):
     return excel_buffer
 
 PRODUCTS = [
-    {"id": 1, "name": "Pure Copper Bottle", "category": "copper", "price": "$24.99", "purity": "99.9%", "image": "copper-bottle", "desc": "Handcrafted pure copper water bottle, traditionally forged in India."},
-    {"id": 2, "name": "Copper Jug Set", "category": "copper", "price": "$49.99", "purity": "99.9%", "image": "copper-jug", "desc": "Elegant copper jug with two tumblers, ideal for ayurvedic water storage."},
-    {"id": 3, "name": "Copper Plate Set", "category": "copper", "price": "$34.99", "purity": "99.5%", "image": "copper-plate", "desc": "Traditional copper dining plates with hand-embossed motifs."},
-    {"id": 4, "name": "Ceramic Vase – Indigo", "category": "ceramic", "price": "$39.99", "purity": "Grade A", "image": "ceramic-vase", "desc": "Hand-painted blue pottery ceramic vase from Jaipur artisans."},
-    {"id": 5, "name": "Ceramic Bowl Set", "category": "ceramic", "price": "$29.99", "purity": "Grade A", "image": "ceramic-bowl", "desc": "Artisan glazed ceramic bowls, kiln-fired with traditional techniques."},
-    {"id": 6, "name": "Terracotta Planter", "category": "handicraft", "price": "$19.99", "purity": "Handmade", "image": "terracotta", "desc": "Sun-dried terracotta planter with tribal geometric carvings."},
-    {"id": 7, "name": "Brass Deity Figurine", "category": "handicraft", "price": "$54.99", "purity": "Handmade", "image": "brass", "desc": "Lost-wax cast brass figurine, centuries-old Dhokra craft tradition."},
-    {"id": 8, "name": "Copper Hammered Mug", "category": "copper", "price": "$18.99", "purity": "99.9%", "image": "copper-mug", "desc": "Hand-hammered copper mug with a rustic, artisanal finish."},
+    {"id": 1, "name": "Pure Copper Bottle", "category": "copper", "price": "2199", "purity": "99.9%", "image": "copper-bottle", "desc": "Handcrafted pure copper water bottle, traditionally forged in India."},
+    {"id": 2, "name": "Copper Jug Set", "category": "copper", "price": "4299", "purity": "99.9%", "image": "copper-jug", "desc": "Elegant copper jug with two tumblers, ideal for ayurvedic water storage."},
+    {"id": 3, "name": "Copper Plate Set", "category": "copper", "price": "2999", "purity": "99.5%", "image": "copper-plate", "desc": "Traditional copper dining plates with hand-embossed motifs."},
+    {"id": 4, "name": "Ceramic Vase – Indigo", "category": "ceramic", "price": "3499", "purity": "Grade A", "image": "ceramic-vase", "desc": "Hand-painted blue pottery ceramic vase from Jaipur artisans."},
+    {"id": 5, "name": "Ceramic Bowl Set", "category": "ceramic", "price": "2599", "purity": "Grade A", "image": "ceramic-bowl", "desc": "Artisan glazed ceramic bowls, kiln-fired with traditional techniques."},
+    {"id": 6, "name": "Terracotta Planter", "category": "handicraft", "price": "1799", "purity": "Handmade", "image": "terracotta", "desc": "Sun-dried terracotta planter with tribal geometric carvings."},
+    {"id": 7, "name": "Brass Deity Figurine", "category": "handicraft", "price": "4799", "purity": "Handmade", "image": "brass", "desc": "Lost-wax cast brass figurine, centuries-old Dhokra craft tradition."},
+    {"id": 8, "name": "Copper Hammered Mug", "category": "copper", "price": "1599", "purity": "99.9%", "image": "copper-mug", "desc": "Hand-hammered copper mug with a rustic, artisanal finish."},
 ]
 
 DESTINATIONS = [
@@ -475,9 +519,7 @@ def get_currency_rates():
         # Check if cache is older than 24 hours
         cache_age = (datetime.now(pytz.UTC) - CURRENCY_CACHE['last_updated']).total_seconds()
         if cache_age > 86400:  # 24 hours in seconds
-            # In production, fetch from external API here
-            # Format: rates are relative to base_currency (USD)
-            CURRENCY_CACHE['last_updated'] = datetime.now(pytz.UTC)
+            fetch_live_rates()
         
         return jsonify({
             "success": True,

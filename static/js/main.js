@@ -296,14 +296,14 @@ const CurrencySystem = (() => {
   const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
   
   let rates = {};
-  let currentCurrency = 'USD';
+  let currentCurrency = 'INR';
   
   /**
    * Initialize currency system - fetch rates and setup UI
    */
   async function init() {
     // Restore user's currency preference
-    currentCurrency = localStorage.getItem(STORAGE_KEY) || 'USD';
+    currentCurrency = localStorage.getItem(STORAGE_KEY) || 'INR';
     updateCurrencyDisplay();
     
     // Fetch currency rates with caching
@@ -325,10 +325,13 @@ const CurrencySystem = (() => {
       const cachedRates = localStorage.getItem(RATES_KEY);
       const expiry = localStorage.getItem(RATES_EXPIRY_KEY);
       
-      // Use cached rates if still valid
+      // Use cached rates if still valid and base is INR
       if (cachedRates && expiry && now < parseInt(expiry)) {
-        rates = JSON.parse(cachedRates);
-        return;
+        const parsed = JSON.parse(cachedRates);
+        if (parsed['INR'] === 1.0) {
+          rates = parsed;
+          return;
+        }
       }
       
       // Fetch fresh rates from API
@@ -345,12 +348,32 @@ const CurrencySystem = (() => {
       }
     } catch (error) {
       console.error('Currency rates fetch error:', error);
-      // Fallback to default rates if API fails
+      // Fallback to default rates if API fails (INR base)
       rates = {
-        'USD': 1.0,
-        'EUR': 0.92,
-        'GBP': 0.79,
-        'INR': 83.12
+        'INR': 1.0,
+        'USD': 0.01189,
+        'EUR': 0.01094,
+        'GBP': 0.00940,
+        'AED': 0.04367,
+        'AUD': 0.01838,
+        'BDT': 1.4239,
+        'BRL': 0.06778,
+        'CAD': 0.01638,
+        'CHF': 0.01049,
+        'CNY': 0.08653,
+        'EGP': 0.5915,
+        'JPY': 1.828,
+        'KWD': 0.003654,
+        'MYR': 0.05274,
+        'NGN': 19.07,
+        'NZD': 0.02004,
+        'QAR': 0.04329,
+        'RUB': 1.1905,
+        'SAR': 0.04459,
+        'SGD': 0.01584,
+        'THB': 0.4063,
+        'TRY': 0.4598,
+        'ZAR': 0.2158
       };
     }
   }
@@ -434,32 +457,14 @@ const CurrencySystem = (() => {
     if (!rates[currentCurrency]) return;
     
     const conversionRate = rates[currentCurrency];
-    const baseRate = rates['USD']; // All prices are in USD
     
-    // Convert all price elements on the page
-    const priceElements = document.querySelectorAll('[data-product-price]');
+    // Convert all .pcard-price elements (base prices are in INR)
+    const priceElements = document.querySelectorAll('.pcard-price');
     priceElements.forEach(element => {
-      const basePrice = parseFloat(element.dataset.basePrice || element.getAttribute('data-product-price'));
+      const basePrice = parseFloat(element.getAttribute('data-base-price'));
       if (!isNaN(basePrice)) {
         const convertedPrice = (basePrice * conversionRate).toFixed(2);
         element.textContent = `${currentCurrency} ${convertedPrice}`;
-        element.dataset.basePrice = basePrice; // Store base price for future conversions
-      }
-    });
-    
-    // Convert prices in the .pcard-price elements on catalog page
-    const catalogPrices = document.querySelectorAll('.pcard-price');
-    catalogPrices.forEach(element => {
-      // Extract numeric price from text (assumes format like "$29.99" or "29.99")
-      const priceText = element.getAttribute('data-product-price') || element.textContent;
-      const basePrice = parseFloat(priceText.replace(/[^0-9.]/g, ''));
-      
-      if (!isNaN(basePrice)) {
-        const convertedPrice = (basePrice * conversionRate).toFixed(2);
-        element.textContent = `${currentCurrency} ${convertedPrice}`;
-        if (!element.getAttribute('data-product-price')) {
-          element.setAttribute('data-product-price', basePrice);
-        }
       }
     });
   }
@@ -467,9 +472,9 @@ const CurrencySystem = (() => {
   /**
    * Convert a single price value
    */
-  function convertPrice(priceInUSD) {
-    if (!rates[currentCurrency]) return priceInUSD;
-    return (priceInUSD * rates[currentCurrency]).toFixed(2);
+  function convertPrice(priceInINR) {
+    if (!rates[currentCurrency]) return priceInINR;
+    return (priceInINR * rates[currentCurrency]).toFixed(2);
   }
   
   // Public API
@@ -477,7 +482,7 @@ const CurrencySystem = (() => {
     init,
     convertPrice,
     getCurrentCurrency: () => currentCurrency,
-    getRates: () => ({ ...rates, base: 'USD' })
+    getRates: () => ({ ...rates, base: 'INR' })
   };
 })();
 
