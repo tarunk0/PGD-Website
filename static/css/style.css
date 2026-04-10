@@ -164,6 +164,99 @@ body {
 }
 .btn-quote:hover { background: var(--copper); box-shadow: 0 0 18px rgba(212,148,58,0.4); }
 
+/* ---- HEADER ACTIONS / CURRENCY SELECTOR ---- */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-left: auto;
+}
+
+.currency-selector {
+  position: relative;
+}
+
+.currency-btn {
+  background: transparent;
+  border: 1px solid var(--copper);
+  color: var(--copper);
+  padding: 0.5rem 0.8rem;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.currency-icon {
+  font-size: 0.9rem;
+}
+
+.currency-code {
+  min-width: 30px;
+  text-align: center;
+}
+
+.currency-btn:hover {
+  background: rgba(184,115,51,0.1);
+  border-color: var(--copper-lt);
+  color: var(--copper-lt);
+}
+
+.currency-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--navy);
+  border: 1px solid var(--copper);
+  border-top: none;
+  border-radius: 0 0 3px 3px;
+  display: none;
+  flex-direction: column;
+  min-width: 180px;
+  z-index: 1001;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.currency-dropdown.active {
+  display: flex;
+}
+
+.currency-option {
+  background: transparent;
+  border: none;
+  color: rgba(249,246,238,0.7);
+  padding: 0.7rem 1rem;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+
+.currency-option:hover,
+.currency-option.active {
+  background: rgba(184,115,51,0.15);
+  color: var(--copper-lt);
+}
+
+.currency-option:first-child {
+  border-radius: 0;
+}
+
+.currency-option:last-child {
+  border-radius: 0 0 3px 3px;
+}
+
 .nav-toggle { display: none; background: none; border: none; font-size: 1.4rem; color: var(--copper-lt); cursor: pointer; }
 
 /* ---- HERO ---- */
@@ -588,6 +681,9 @@ body {
   .nav-toggle { display: block; }
   .whatsapp-float { bottom: 1.5rem; right: 1.5rem; width: 55px; height: 55px; }
   .whatsapp-icon { width: 28px; height: 28px; }
+  .header-actions { gap: 1rem; }
+  .currency-btn { padding: 0.45rem 0.6rem; font-size: 0.65rem; }
+  .currency-icon { font-size: 0.75rem; }
 }
 @media (max-width: 600px) {
   .products-grid { grid-template-columns: 1fr; }
@@ -596,4 +692,9 @@ body {
   .stat-n { font-size: 1.2rem; }
   .whatsapp-float { bottom: 1rem; right: 1rem; width: 50px; height: 50px; }
   .whatsapp-icon { width: 24px; height: 24px; }
+  .header-actions { gap: 0.8rem; }
+  .currency-btn { padding: 0.4rem 0.5rem; font-size: 0.6rem; }
+  .currency-code { min-width: 25px; }
+  .currency-dropdown { min-width: 160px; }
+  .currency-option { padding: 0.6rem 0.8rem; font-size: 0.7rem; }
 }

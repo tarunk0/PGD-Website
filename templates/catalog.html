@@ -22,7 +22,21 @@
       <a href="/catalog" class="active">Product Catalog</a>
       <a href="/#contact">Contact</a>
     </nav>
-    <a href="/#contact" class="btn-quote">Get a Quote</a>
+    <div class="header-actions">
+      <div class="currency-selector">
+        <button class="currency-btn" id="currencyToggle" title="Change currency">
+          <span class="currency-icon">💱</span>
+          <span class="currency-code" id="currencyDisplay">USD</span>
+        </button>
+        <div class="currency-dropdown" id="currencyDropdown">
+          <button class="currency-option" data-currency="USD">USD - US Dollar</button>
+          <button class="currency-option" data-currency="EUR">EUR - Euro</button>
+          <button class="currency-option" data-currency="GBP">GBP - British Pound</button>
+          <button class="currency-option" data-currency="INR">INR - Indian Rupee</button>
+        </div>
+      </div>
+      <a href="/#contact" class="btn-quote">Get a Quote</a>
+    </div>
   </div>
 </header>
 
@@ -52,7 +66,7 @@
           <h4 class="pcard-name">{{ product.name }}</h4>
           <p class="pcard-desc">{{ product.desc }}</p>
           <div class="pcard-footer">
-            <span class="pcard-price">{{ product.price }}</span>
+            <span class="pcard-price" data-product-price="{{ product.price }}">{{ product.price }}</span>
             <a href="/#contact" class="btn-small" onclick="enquireProduct(event, {{ product.id }}, '{{ product.name }}', '{{ product.category }}', '{{ product.price }}', '{{ product.purity }}')">Enquire</a>
           </div>
         </div>

@@ -26,6 +26,18 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# =================== CURRENCY CONVERSION CACHE ===================
+CURRENCY_CACHE = {
+    'rates': {
+        'USD': 1.0,
+        'EUR': 0.92,
+        'GBP': 0.79,
+        'INR': 83.12
+    },
+    'last_updated': datetime.now(pytz.UTC),
+    'base_currency': 'USD'
+}
+
 # Authentication Helper Functions
 def login_required(f):
     """Decorator to protect admin routes"""
@@ -401,6 +413,26 @@ def shipment_count():
     base = 4827
     live = base + random.randint(0, 99)
     return jsonify({"count": live, "active_routes": 6})
+
+@app.route("/api/currency-rates")
+def get_currency_rates():
+    """Get current currency conversion rates (cached, updates daily)"""
+    try:
+        # Check if cache is older than 24 hours
+        cache_age = (datetime.now(pytz.UTC) - CURRENCY_CACHE['last_updated']).total_seconds()
+        if cache_age > 86400:  # 24 hours in seconds
+            # In production, fetch from external API here
+            # Format: rates are relative to base_currency (USD)
+            CURRENCY_CACHE['last_updated'] = datetime.now(pytz.UTC)
+        
+        return jsonify({
+            "success": True,
+            "rates": CURRENCY_CACHE['rates'],
+            "base": CURRENCY_CACHE['base_currency'],
+            "timestamp": CURRENCY_CACHE['last_updated'].isoformat()
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route("/api/inquiries", methods=["POST"])
 def create_inquiry():

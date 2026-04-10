@@ -27,7 +27,21 @@
       <a href="/catalog">Full Catalog</a>
       <a href="#contact">Contact</a>
     </nav>
-    <a href="#contact" class="btn-quote">Get a Quote</a>
+    <div class="header-actions">
+      <div class="currency-selector">
+        <button class="currency-btn" id="currencyToggle" title="Change currency">
+          <span class="currency-icon">💱</span>
+          <span class="currency-code" id="currencyDisplay">USD</span>
+        </button>
+        <div class="currency-dropdown" id="currencyDropdown">
+          <button class="currency-option" data-currency="USD">USD - US Dollar</button>
+          <button class="currency-option" data-currency="EUR">EUR - Euro</button>
+          <button class="currency-option" data-currency="GBP">GBP - British Pound</button>
+          <button class="currency-option" data-currency="INR">INR - Indian Rupee</button>
+        </div>
+      </div>
+      <a href="#contact" class="btn-quote">Get a Quote</a>
+    </div>
     <button class="nav-toggle" onclick="toggleNav()">&#9776;</button>
   </div>
 </header>
