@@ -33,13 +33,47 @@ async function fetchShipments() {
 fetchShipments();
 setInterval(fetchShipments, 8000);
 
-// Mobile nav toggle
-function toggleNav() {
-  const nav = document.querySelector('.nav');
-  if (!nav) return;
-  if (nav.style.display === 'flex') { nav.style.display = ''; }
-  else { nav.style.cssText = 'display:flex;flex-direction:column;position:fixed;top:70px;left:0;right:0;background:rgba(0,23,45,0.97);padding:2rem;gap:1.5rem;z-index:999;'; }
-}
+// Mobile nav — slide-in panel with overlay
+(function() {
+  const toggle = document.getElementById('navToggle');
+  const nav = document.getElementById('mainNav');
+  if (!toggle || !nav) return;
+
+  // Create overlay element once
+  const overlay = document.createElement('div');
+  overlay.className = 'nav-overlay';
+  document.body.appendChild(overlay);
+
+  function openNav() {
+    nav.classList.add('open');
+    overlay.classList.add('active');
+    toggle.innerHTML = '&#10005;'; // × symbol
+    toggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeNav() {
+    nav.classList.remove('open');
+    overlay.classList.remove('active');
+    toggle.innerHTML = '&#9776;'; // ☰ symbol
+    toggle.setAttribute('aria-expanded', 'false');
+  }
+
+  toggle.addEventListener('click', () => {
+    nav.classList.contains('open') ? closeNav() : openNav();
+  });
+
+  overlay.addEventListener('click', closeNav);
+
+  // Close nav when a link is clicked
+  nav.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', closeNav);
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeNav();
+  });
+})();
 
 // Catalog filter
 function filterProducts(cat, btn) {
@@ -252,5 +286,208 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('WhatsApp button clicked - User initiated chat');
     // You can add analytics here later
   });
+});
+
+// =================== CURRENCY CONVERSION SYSTEM ===================
+const CurrencySystem = (() => {
+  const STORAGE_KEY = 'pgd_selected_currency';
+  const RATES_KEY = 'pgd_currency_rates';
+  const RATES_EXPIRY_KEY = 'pgd_rates_expiry';
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  
+  let rates = {};
+  let currentCurrency = 'INR';
+  
+  /**
+   * Initialize currency system - fetch rates and setup UI
+   */
+  async function init() {
+    // Restore user's currency preference
+    currentCurrency = localStorage.getItem(STORAGE_KEY) || 'INR';
+    updateCurrencyDisplay();
+    
+    // Fetch currency rates with caching
+    await fetchAndCacheRates();
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Apply currency conversion to all prices
+    applyConversion();
+  }
+  
+  /**
+   * Fetch rates from API or use cached version
+   */
+  async function fetchAndCacheRates() {
+    try {
+      const now = Date.now();
+      const cachedRates = localStorage.getItem(RATES_KEY);
+      const expiry = localStorage.getItem(RATES_EXPIRY_KEY);
+      
+      // Use cached rates if still valid and base is INR
+      if (cachedRates && expiry && now < parseInt(expiry)) {
+        const parsed = JSON.parse(cachedRates);
+        if (parsed['INR'] === 1.0) {
+          rates = parsed;
+          return;
+        }
+      }
+      
+      // Fetch fresh rates from API
+      const response = await fetch('/api/currency-rates');
+      if (!response.ok) throw new Error('Failed to fetch rates');
+      
+      const data = await response.json();
+      if (data.success && data.rates) {
+        rates = data.rates;
+        
+        // Cache rates with expiry timestamp
+        localStorage.setItem(RATES_KEY, JSON.stringify(rates));
+        localStorage.setItem(RATES_EXPIRY_KEY, String(now + CACHE_DURATION));
+      }
+    } catch (error) {
+      console.error('Currency rates fetch error:', error);
+      // Fallback to default rates if API fails (INR base)
+      rates = {
+        'INR': 1.0,
+        'USD': 0.01189,
+        'EUR': 0.01094,
+        'GBP': 0.00940,
+        'AED': 0.04367,
+        'AUD': 0.01838,
+        'BDT': 1.4239,
+        'BRL': 0.06778,
+        'CAD': 0.01638,
+        'CHF': 0.01049,
+        'CNY': 0.08653,
+        'EGP': 0.5915,
+        'JPY': 1.828,
+        'KWD': 0.003654,
+        'MYR': 0.05274,
+        'NGN': 19.07,
+        'NZD': 0.02004,
+        'QAR': 0.04329,
+        'RUB': 1.1905,
+        'SAR': 0.04459,
+        'SGD': 0.01584,
+        'THB': 0.4063,
+        'TRY': 0.4598,
+        'ZAR': 0.2158
+      };
+    }
+  }
+  
+  /**
+   * Setup currency selector event listeners
+   */
+  function setupEventListeners() {
+    const currencyToggle = document.getElementById('currencyToggle');
+    const currencyDropdown = document.getElementById('currencyDropdown');
+    const currencyOptions = document.querySelectorAll('.currency-option');
+    
+    if (!currencyToggle) return;
+    
+    // Toggle dropdown on button click
+    currencyToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      currencyDropdown?.classList.toggle('active');
+    });
+    
+    // Handle currency option selection
+    currencyOptions.forEach(option => {
+      option.addEventListener('click', () => {
+        const selectedCurrency = option.dataset.currency;
+        selectCurrency(selectedCurrency);
+        currencyDropdown?.classList.remove('active');
+      });
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', () => {
+      currencyDropdown?.classList.remove('active');
+    });
+    
+    // Mark current currency as active
+    updateCurrencyOptions();
+  }
+  
+  /**
+   * Select and apply currency
+   */
+  function selectCurrency(currency) {
+    if (!rates[currency]) return;
+    
+    currentCurrency = currency;
+    localStorage.setItem(STORAGE_KEY, currency);
+    
+    updateCurrencyDisplay();
+    updateCurrencyOptions();
+    applyConversion();
+  }
+  
+  /**
+   * Update currency display in button
+   */
+  function updateCurrencyDisplay() {
+    const display = document.getElementById('currencyDisplay');
+    if (display) {
+      display.textContent = currentCurrency;
+    }
+  }
+  
+  /**
+   * Mark active currency in dropdown
+   */
+  function updateCurrencyOptions() {
+    const options = document.querySelectorAll('.currency-option');
+    options.forEach(option => {
+      if (option.dataset.currency === currentCurrency) {
+        option.classList.add('active');
+      } else {
+        option.classList.remove('active');
+      }
+    });
+  }
+  
+  /**
+   * Apply currency conversion to all product prices
+   */
+  function applyConversion() {
+    if (!rates[currentCurrency]) return;
+    
+    const conversionRate = rates[currentCurrency];
+    
+    // Convert all .pcard-price elements (base prices are in INR)
+    const priceElements = document.querySelectorAll('.pcard-price');
+    priceElements.forEach(element => {
+      const basePrice = parseFloat(element.getAttribute('data-base-price'));
+      if (!isNaN(basePrice)) {
+        const convertedPrice = (basePrice * conversionRate).toFixed(2);
+        element.textContent = `${currentCurrency} ${convertedPrice}`;
+      }
+    });
+  }
+  
+  /**
+   * Convert a single price value
+   */
+  function convertPrice(priceInINR) {
+    if (!rates[currentCurrency]) return priceInINR;
+    return (priceInINR * rates[currentCurrency]).toFixed(2);
+  }
+  
+  // Public API
+  return {
+    init,
+    convertPrice,
+    getCurrentCurrency: () => currentCurrency,
+    getRates: () => ({ ...rates, base: 'INR' })
+  };
+})();
+
+// Initialize currency system on page load
+document.addEventListener('DOMContentLoaded', () => {
+  CurrencySystem.init();
 });
 
