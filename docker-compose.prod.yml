@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  # Production Flask Application with Gunicorn
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pgd-website-prod
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount instance directory for persistent database
+      - pgd_instance:/app/instance
+      # Mount logs directory (optional)
+      - pgd_logs:/var/log/pgd
+    command: gunicorn --bind 0.0.0.0:5000 --workers 4 --threads 2 --worker-class gthread --timeout 60 --access-logfile - --error-logfile - app:app
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    # Security options
+    read_only: false
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+  # Optional: Nginx Reverse Proxy (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: pgd-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - web
+    restart: always
+
+volumes:
+  pgd_instance:
+    driver: local
+  pgd_logs:
+    driver: local
