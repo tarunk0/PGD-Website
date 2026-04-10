@@ -21,3 +21,8 @@ class Config:
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'admin'
     ADMIN_PASSWORD_HASH = 'scrypt:32768:8:1$VLH9cqB43GtMcz3r$998e08c0bce0fa875ea6c42bf1e9eedb45c8160f83951a81c520ead3063b6920861de97995b123894c65ac5500979a8c520fb512270ebf4298090a57a45225cc'
 
+    # Email / Newsletter
+    RESEND_API_KEY = os.environ.get('RESEND_API_KEY') or ''
+    MAIL_FROM = os.environ.get('MAIL_FROM') or 'PGD <onboarding@resend.dev>'
+    SITE_URL = os.environ.get('SITE_URL') or 'http://127.0.0.1:5000'
+

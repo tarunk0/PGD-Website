@@ -491,3 +491,44 @@ document.addEventListener('DOMContentLoaded', () => {
   CurrencySystem.init();
 });
 
+/* ────────────── Newsletter Form Handler ────────────── */
+(function() {
+  const form = document.getElementById('newsletterForm');
+  if (!form) return;
+
+  const emailInput = document.getElementById('newsletterEmail');
+  const btn = form.querySelector('.newsletter-btn');
+  const msg = document.getElementById('newsletterMsg');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    if (!email) return;
+
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    msg.textContent = '';
+    msg.className = 'newsletter-msg';
+
+    fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      msg.textContent = data.message || 'Check your inbox to confirm.';
+      msg.classList.add(data.success ? 'success' : 'error');
+      if (data.success) emailInput.value = '';
+    })
+    .catch(function() {
+      msg.textContent = 'Something went wrong. Please try again.';
+      msg.classList.add('error');
+    })
+    .finally(function() {
+      btn.disabled = false;
+      btn.textContent = 'Subscribe';
+    });
+  });
+})();
+

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, request, session, redirect, send_file, Response, make_response
 import random
 import os
+import time
 import json
 import requests as http_requests
 from datetime import datetime, timedelta
@@ -16,7 +17,7 @@ from reportlab.lib import colors
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from config import Config
-from models import db, Customer, Inquiry, Product, InquiryResponse
+from models import db, Customer, Inquiry, Product, InquiryResponse, Subscriber
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -657,6 +658,268 @@ def update_inquiry_status(inquiry_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+
+# =================== NEWSLETTER / SUBSCRIBE ===================
+
+def send_email(to_email, subject, html_body):
+    """Send email via Resend API. Returns True on success."""
+    api_key = app.config.get('RESEND_API_KEY', '')
+    if not api_key:
+        print(f"[EMAIL-SKIP] No RESEND_API_KEY set. Would send to {to_email}: {subject}")
+        return False
+    try:
+        resp = http_requests.post(
+            'https://api.resend.com/emails',
+            headers={'Authorization': f'Bearer {api_key}', 'Content-Type': 'application/json'},
+            json={
+                'from': app.config.get('MAIL_FROM', 'PGD <onboarding@resend.dev>'),
+                'to': [to_email],
+                'subject': subject,
+                'html': html_body,
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return True
+    except Exception as e:
+        print(f"[EMAIL-ERROR] {e}")
+        return False
+
+
+def build_confirm_email(confirm_url):
+    """Build confirmation email HTML."""
+    return f'''
+    <div style="max-width:520px;margin:0 auto;font-family:'Montserrat',Arial,sans-serif;background:#F9F6EE;border:1px solid #e8e0d4;border-radius:4px;overflow:hidden;">
+      <div style="background:#00172D;padding:28px 24px;text-align:center;border-bottom:3px solid #b87333;">
+        <span style="font-family:'Cinzel',Georgia,serif;font-size:28px;color:#d4956b;letter-spacing:4px;">PGD</span>
+      </div>
+      <div style="padding:32px 24px;text-align:center;">
+        <h2 style="font-family:'Cinzel',Georgia,serif;color:#00172D;margin:0 0 12px;">Confirm Your Subscription</h2>
+        <p style="color:#444;font-size:14px;line-height:1.6;margin:0 0 24px;">
+          Thank you for subscribing to PGD newsletters. Click below to confirm your email and start receiving updates on new products, offers, and export insights.
+        </p>
+        <a href="{confirm_url}" style="display:inline-block;background:#b87333;color:#fff;text-decoration:none;padding:12px 32px;border-radius:3px;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">Confirm Subscription</a>
+        <p style="color:#999;font-size:11px;margin-top:24px;">If you didn't subscribe, ignore this email.</p>
+      </div>
+      <div style="background:#00172D;padding:14px;text-align:center;">
+        <span style="color:rgba(249,246,238,0.3);font-size:10px;letter-spacing:1px;">© 2026 Pandra Global Dynamics Pvt Ltd</span>
+      </div>
+    </div>'''
+
+
+def build_newsletter_email(body_html, unsubscribe_url):
+    """Wrap admin-composed content in PGD branded email template."""
+    return f'''
+    <div style="max-width:560px;margin:0 auto;font-family:'Montserrat',Arial,sans-serif;background:#F9F6EE;border:1px solid #e8e0d4;border-radius:4px;overflow:hidden;">
+      <div style="background:#00172D;padding:28px 24px;text-align:center;border-bottom:3px solid #b87333;">
+        <span style="font-family:'Cinzel',Georgia,serif;font-size:28px;color:#d4956b;letter-spacing:4px;">PGD</span>
+        <div style="color:rgba(249,246,238,0.5);font-size:10px;letter-spacing:2px;margin-top:6px;text-transform:uppercase;">Pandra Global Dynamics</div>
+      </div>
+      <div style="padding:32px 28px;color:#333;font-size:14px;line-height:1.7;">
+        {body_html}
+      </div>
+      <div style="background:#00172D;padding:16px 24px;text-align:center;border-top:1px solid rgba(184,115,51,0.2);">
+        <span style="color:rgba(249,246,238,0.35);font-size:10px;letter-spacing:1px;">
+          &copy; 2026 Pandra Global Dynamics Pvt Ltd &nbsp;&middot;&nbsp;
+          <a href="{unsubscribe_url}" style="color:rgba(249,246,238,0.5);text-decoration:underline;">Unsubscribe</a>
+        </span>
+      </div>
+    </div>'''
+
+
+@app.route("/api/newsletter/send", methods=["POST"])
+@login_required
+def send_newsletter():
+    """Send a newsletter to all confirmed active subscribers."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request"}), 400
+
+        subject = (data.get('subject') or '').strip()
+        body_html = (data.get('body_html') or '').strip()
+
+        if not subject:
+            return jsonify({"success": False, "error": "Subject is required"}), 400
+        if not body_html:
+            return jsonify({"success": False, "error": "Email body is required"}), 400
+        if len(subject) > 200:
+            return jsonify({"success": False, "error": "Subject too long (max 200 chars)"}), 400
+
+        subscribers = Subscriber.query.filter_by(is_active=True, is_confirmed=True).all()
+        if not subscribers:
+            return jsonify({"success": False, "error": "No confirmed subscribers to send to"}), 400
+
+        site_url = app.config.get('SITE_URL', 'https://pgd-website.fly.dev')
+        sent = 0
+        failed = 0
+
+        for subscriber in subscribers:
+            unsubscribe_url = f"{site_url}/unsubscribe/{subscriber.unsubscribe_token}"
+            full_html = build_newsletter_email(body_html, unsubscribe_url)
+            ok = send_email(subscriber.email, subject, full_html)
+            if ok:
+                sent += 1
+            else:
+                failed += 1
+            time.sleep(0.5)  # Respect Resend 2 req/sec rate limit
+
+        return jsonify({
+            "success": True,
+            "message": f"Sent to {sent} subscriber{'s' if sent != 1 else ''}.",
+            "sent": sent,
+            "failed": failed,
+            "total": len(subscribers),
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/subscribe", methods=["POST"])
+def subscribe():
+    """Subscribe to newsletter with double opt-in."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Invalid request"}), 400
+
+        email = (data.get('email') or '').strip().lower()
+        name = (data.get('name') or '').strip()
+
+        if not email or '@' not in email or '.' not in email.split('@')[-1]:
+            return jsonify({"success": False, "error": "Please enter a valid email address"}), 400
+
+        if len(email) > 255:
+            return jsonify({"success": False, "error": "Email too long"}), 400
+
+        existing = Subscriber.query.filter_by(email=email).first()
+        if existing:
+            if existing.is_active and existing.is_confirmed:
+                return jsonify({"success": True, "message": "You're already subscribed!"}), 200
+            if existing.is_active and not existing.is_confirmed:
+                # Resend confirmation
+                confirm_url = f"{app.config['SITE_URL']}/subscribe/confirm/{existing.confirm_token}"
+                send_email(existing.email, "Confirm your PGD subscription", build_confirm_email(confirm_url))
+                return jsonify({"success": True, "message": "Confirmation email resent. Please check your inbox."}), 200
+            # Reactivate
+            existing.is_active = True
+            existing.is_confirmed = False
+            existing.unsubscribed_at = None
+            import secrets
+            existing.confirm_token = secrets.token_urlsafe(32)
+            existing.unsubscribe_token = secrets.token_urlsafe(32)
+            if name:
+                existing.name = name
+            db.session.commit()
+            confirm_url = f"{app.config['SITE_URL']}/subscribe/confirm/{existing.confirm_token}"
+            send_email(existing.email, "Confirm your PGD subscription", build_confirm_email(confirm_url))
+            return jsonify({"success": True, "message": "Welcome back! Please check your email to confirm."}), 200
+
+        subscriber = Subscriber(email=email, name=name if name else None)
+        db.session.add(subscriber)
+        db.session.commit()
+
+        confirm_url = f"{app.config['SITE_URL']}/subscribe/confirm/{subscriber.confirm_token}"
+        send_email(email, "Confirm your PGD subscription", build_confirm_email(confirm_url))
+
+        return jsonify({"success": True, "message": "Please check your email to confirm your subscription."}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/subscribe/confirm/<token>")
+def confirm_subscription(token):
+    """Confirm subscription via email link."""
+    subscriber = Subscriber.query.filter_by(confirm_token=token, is_active=True).first()
+    if not subscriber:
+        return render_template("subscribe_status.html",
+                               status="error",
+                               message="Invalid or expired confirmation link.")
+    if subscriber.is_confirmed:
+        return render_template("subscribe_status.html",
+                               status="already",
+                               message="Your subscription is already confirmed!")
+    subscriber.is_confirmed = True
+    subscriber.confirmed_at = datetime.utcnow()
+    db.session.commit()
+    return render_template("subscribe_status.html",
+                           status="success",
+                           message="Your subscription is confirmed! You'll receive our latest updates.")
+
+
+@app.route("/unsubscribe/<token>")
+def unsubscribe(token):
+    """Unsubscribe via email link (one-click)."""
+    subscriber = Subscriber.query.filter_by(unsubscribe_token=token).first()
+    if not subscriber:
+        return render_template("subscribe_status.html",
+                               status="error",
+                               message="Invalid unsubscribe link.")
+    if not subscriber.is_active:
+        return render_template("subscribe_status.html",
+                               status="already",
+                               message="You've already been unsubscribed.")
+    subscriber.is_active = False
+    subscriber.unsubscribed_at = datetime.utcnow()
+    db.session.commit()
+    return render_template("subscribe_status.html",
+                           status="unsubscribed",
+                           message="You've been unsubscribed. We're sorry to see you go.")
+
+
+# ---- Admin: Subscriber Management ----
+
+@app.route("/admin/subscribers")
+@login_required
+def admin_subscribers():
+    """Admin view of all subscribers."""
+    return render_template("admin_subscribers.html")
+
+
+@app.route("/api/subscribers", methods=["GET"])
+@login_required
+def get_subscribers():
+    """Get all subscribers for admin."""
+    try:
+        subscribers = Subscriber.query.order_by(Subscriber.subscribed_at.desc()).all()
+        return jsonify({
+            "success": True,
+            "subscribers": [{
+                "id": s.id,
+                "email": s.email,
+                "name": s.name or "",
+                "is_active": s.is_active,
+                "is_confirmed": s.is_confirmed,
+                "subscribed_at": s.subscribed_at.isoformat() if s.subscribed_at else None,
+                "confirmed_at": s.confirmed_at.isoformat() if s.confirmed_at else None,
+            } for s in subscribers],
+            "total": len(subscribers),
+            "active": sum(1 for s in subscribers if s.is_active and s.is_confirmed),
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route("/api/subscribers/export/csv")
+@login_required
+def export_subscribers_csv():
+    """Export confirmed active subscribers as CSV."""
+    subscribers = Subscriber.query.filter_by(is_active=True, is_confirmed=True).order_by(Subscriber.subscribed_at.desc()).all()
+    output = StringIO()
+    output.write("Email,Name,Subscribed At,Confirmed At\n")
+    for s in subscribers:
+        name = (s.name or "").replace('"', '""')
+        output.write(f'"{s.email}","{name}","{s.subscribed_at}","{s.confirmed_at}"\n')
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename=pgd_subscribers_{datetime.now().strftime("%Y%m%d")}.csv'}
+    )
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
