@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import secrets
 
 db = SQLAlchemy()
 
@@ -94,3 +95,22 @@ class Shipment(db.Model):
     
     def __repr__(self):
         return f'<Shipment {self.id} - {self.status}>'
+
+
+class Subscriber(db.Model):
+    """Newsletter subscribers"""
+    __tablename__ = 'subscribers'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), nullable=False, unique=True, index=True)
+    name = db.Column(db.String(255), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+    is_confirmed = db.Column(db.Boolean, default=False)
+    confirm_token = db.Column(db.String(64), unique=True, default=lambda: secrets.token_urlsafe(32))
+    unsubscribe_token = db.Column(db.String(64), unique=True, default=lambda: secrets.token_urlsafe(32))
+    subscribed_at = db.Column(db.DateTime, default=datetime.utcnow)
+    confirmed_at = db.Column(db.DateTime, nullable=True)
+    unsubscribed_at = db.Column(db.DateTime, nullable=True)
+
+    def __repr__(self):
+        return f'<Subscriber {self.email} active={self.is_active}>'
