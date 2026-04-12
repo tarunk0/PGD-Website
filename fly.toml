@@ -17,7 +17,7 @@ primary_region = 'sin'
   PYTHONUNBUFFERED = '1'
 
 [processes]
-  web = 'python app.py'
+  web = 'gunicorn --bind 0.0.0.0:5000 app:app'
 
 [[mounts]]
   source = 'pgd_data'
@@ -43,4 +43,4 @@ primary_region = 'sin'
 [[vm]]
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
+  memory_mb = 512
